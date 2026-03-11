@@ -112,7 +112,7 @@ export function CommunityPulse() {
                   ))}
                 </div>
                 <span className="text-xs text-muted-foreground ml-2">
-                  +{Math.floor(Math.random() * 5) + 2} more
+                  +{(idx % 5) + 3} more
                 </span>
               </div>
 
