@@ -3,13 +3,13 @@
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 export function FinancialSnapshot() {
-  const monthlyGoal = 500;
-  const currentSavings = 340;
+  const monthlyGoal = 50000;
+  const currentSavings = 34000;
   const progressPercent = (currentSavings / monthlyGoal) * 100;
 
   const recentTransactions = [
-    { type: 'income', label: 'Freelance Project', amount: '+$250', color: 'from-green-500 to-emerald-500' },
-    { type: 'expense', label: 'Utilities', amount: '-$85', color: 'from-red-500 to-orange-500' },
+    { type: 'income', label: 'Freelance Project', amount: '+KES 25,000', color: 'from-green-500 to-emerald-500' },
+    { type: 'expense', label: 'Utilities', amount: '-KES 8,500', color: 'from-red-500 to-orange-500' },
   ];
 
   return (
@@ -80,7 +80,7 @@ export function FinancialSnapshot() {
                 {progressPercent.toFixed(0)}%
               </div>
               <div className="text-xs md:text-sm text-muted-foreground mt-2">
-                of $500 goal
+                of KES 50,000 goal
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export function FinancialSnapshot() {
               Current Savings
             </span>
             <span className="font-semibold text-foreground">
-              ${currentSavings.toFixed(2)}
+              KES {currentSavings.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -101,7 +101,7 @@ export function FinancialSnapshot() {
               Monthly Goal
             </span>
             <span className="font-semibold text-foreground">
-              ${monthlyGoal.toFixed(2)}
+              KES {monthlyGoal.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -109,7 +109,7 @@ export function FinancialSnapshot() {
               Remaining
             </span>
             <span className="font-semibold text-accent">
-              ${(monthlyGoal - currentSavings).toFixed(2)}
+              KES {(monthlyGoal - currentSavings).toLocaleString()}
             </span>
           </div>
         </div>
