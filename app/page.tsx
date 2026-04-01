@@ -3,6 +3,8 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { FinancialSnapshot } from '@/components/financial-snapshot';
 import { OpportunityBoard } from '@/components/opportunity-board';
 import { CommunityPulse } from '@/components/community-pulse';
+import { BudgetTracker } from '@/components/budget-tracker';
+import { FinancialAnalytics } from '@/components/financial-analytics';
 
 export default function Home() {
   return (
@@ -17,12 +19,22 @@ export default function Home() {
               <FinancialSnapshot />
             </div>
 
-            {/* Opportunity Board - takes 2 columns on lg, full on smaller */}
-            <div className="md:col-span-1 lg:col-span-2">
+            {/* Budget Tracker - takes 1 column */}
+            <div className="md:col-span-1">
+              <BudgetTracker />
+            </div>
+
+            {/* Opportunity Board - takes 1 column on lg */}
+            <div className="md:col-span-2 lg:col-span-1">
               <OpportunityBoard />
             </div>
 
-            {/* Community Pulse - takes 3 columns, full width */}
+            {/* Financial Analytics - takes 2 columns */}
+            <div className="md:col-span-2 lg:col-span-2">
+              <FinancialAnalytics />
+            </div>
+
+            {/* Community Pulse - takes full width */}
             <div className="md:col-span-2 lg:col-span-3">
               <CommunityPulse />
             </div>

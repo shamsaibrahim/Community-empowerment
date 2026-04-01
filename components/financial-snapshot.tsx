@@ -1,16 +1,75 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { useState } from 'react';
+import { TrendingUp, TrendingDown, Wallet, Loader2, Plus, X, Edit3, Target } from 'lucide-react';
+import { useFinancialSummary, useAddTransaction, useUpdateGoal } from '@/hooks/use-api';
+
+const TRANSACTION_CATEGORIES = ['Work', 'Business', 'Bills', 'Food', 'Transport', 'Entertainment', 'Other'];
 
 export function FinancialSnapshot() {
-  const monthlyGoal = 50000;
-  const currentSavings = 34000;
-  const progressPercent = (currentSavings / monthlyGoal) * 100;
+  const { data, loading, error, refetch } = useFinancialSummary();
+  const { addTransaction, loading: submitting } = useAddTransaction();
+  const { updateGoal, loading: updatingGoal } = useUpdateGoal();
+  
+  const [showForm, setShowForm] = useState(false);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'income' as 'income' | 'expense',
+    label: '',
+    amount: '',
+    category: 'Work',
+  });
+  const [goalData, setGoalData] = useState({
+    monthlyGoal: '',
+    currentSavings: '',
+  });
+  
+  const monthlyGoal = data?.currentGoal?.monthlyGoal || 50000;
+  const currentSavings = data?.currentGoal?.currentSavings || 0;
+  const progressPercent = data?.progressPercent || 0;
+  const recentTransactions = data?.recentTransactions || [];
 
-  const recentTransactions = [
-    { type: 'income', label: 'Freelance Project', amount: '+KES 25,000', color: 'from-green-500 to-emerald-500' },
-    { type: 'expense', label: 'Utilities', amount: '-KES 8,500', color: 'from-red-500 to-orange-500' },
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.label || !formData.amount) return;
+    
+    await addTransaction({
+      type: formData.type,
+      label: formData.label,
+      amount: parseFloat(formData.amount),
+      category: formData.category,
+    });
+    
+    setFormData({ type: 'income', label: '', amount: '', category: 'Work' });
+    setShowForm(false);
+    refetch();
+  };
+
+  const handleGoalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!goalData.monthlyGoal) return;
+    
+    const goalId = data?.currentGoal?.id;
+    if (goalId) {
+      await updateGoal(goalId, {
+        monthlyGoal: Number.parseFloat(goalData.monthlyGoal),
+        currentSavings: goalData.currentSavings ? Number.parseFloat(goalData.currentSavings) : undefined,
+      });
+    }
+    
+    setGoalData({ monthlyGoal: '', currentSavings: '' });
+    setShowGoalForm(false);
+    refetch();
+  };
+
+  const openGoalForm = () => {
+    setGoalData({
+      monthlyGoal: monthlyGoal.toString(),
+      currentSavings: currentSavings.toString(),
+    });
+    setShowGoalForm(true);
+    setShowForm(false);
+  };
 
   return (
     <div className="group relative h-full min-h-[380px]">
@@ -30,10 +89,148 @@ export function FinancialSnapshot() {
               Monthly savings progress
             </p>
           </div>
-          <div className="px-3 py-1 rounded-full bg-gradient-to-r from-accent/20 to-primary/20 border border-accent/30">
-            <span className="text-xs font-semibold text-accent">Active</span>
-          </div>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className={`px-3 py-1 rounded-full border transition-all duration-300 text-xs font-semibold flex items-center gap-1 ${
+              showForm 
+                ? 'bg-accent text-accent-foreground border-accent' 
+                : 'bg-gradient-to-r from-accent/20 to-primary/20 border-accent/30 hover:border-accent/60 text-accent'
+            }`}
+          >
+            {showForm ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            {showForm ? 'Cancel' : 'Add'}
+          </button>
         </div>
+
+        {/* Transaction Form */}
+        {showForm && (
+          <form onSubmit={handleSubmit} className="mb-6 p-4 rounded-xl bg-background/50 border border-border/50 space-y-3">
+            {/* Type Toggle */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, type: 'income' })}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  formData.type === 'income'
+                    ? 'bg-green-500/20 text-green-500 border border-green-500/50'
+                    : 'bg-background/50 text-muted-foreground border border-border/50 hover:border-green-500/30'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4 inline mr-1" />
+                Income
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, type: 'expense' })}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  formData.type === 'expense'
+                    ? 'bg-red-500/20 text-red-500 border border-red-500/50'
+                    : 'bg-background/50 text-muted-foreground border border-border/50 hover:border-red-500/30'
+                }`}
+              >
+                <TrendingDown className="w-4 h-4 inline mr-1" />
+                Expense
+              </button>
+            </div>
+
+            {/* Label Input */}
+            <input
+              type="text"
+              placeholder="Description (e.g., Freelance Project)"
+              value={formData.label}
+              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg bg-background/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60"
+              required
+            />
+
+            {/* Amount & Category Row */}
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">KES</span>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="w-full pl-12 pr-3 py-2 rounded-lg bg-background/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60"
+                  required
+                  min="1"
+                />
+              </div>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="px-3 py-2 rounded-lg bg-background/50 border border-border/50 text-sm text-foreground focus:outline-none focus:border-accent/60 cursor-pointer"
+              >
+                {TRANSACTION_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={submitting || !formData.label || !formData.amount}
+              className="w-full py-2 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {submitting ? 'Adding...' : 'Add Transaction'}
+            </button>
+          </form>
+        )}
+
+        {/* Goal Edit Form */}
+        {showGoalForm && (
+          <form onSubmit={handleGoalSubmit} className="mb-6 p-4 rounded-xl bg-background/50 border border-border/50 space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-accent" />
+              <span className="text-sm font-semibold text-foreground">Edit Savings Goal</span>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Monthly Goal (KES)</label>
+                <input
+                  type="number"
+                  value={goalData.monthlyGoal}
+                  onChange={(e) => setGoalData({ ...goalData, monthlyGoal: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-background/50 border border-border/50 text-sm text-foreground focus:outline-none focus:border-accent/60"
+                  required
+                  min="1000"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Current Savings (KES)</label>
+                <input
+                  type="number"
+                  value={goalData.currentSavings}
+                  onChange={(e) => setGoalData({ ...goalData, currentSavings: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-background/50 border border-border/50 text-sm text-foreground focus:outline-none focus:border-accent/60"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowGoalForm(false)}
+                className="flex-1 py-2 rounded-lg bg-background/50 border border-border/50 text-sm text-muted-foreground hover:bg-background/80 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={updatingGoal || !goalData.monthlyGoal}
+                className="flex-1 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {updatingGoal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4" />}
+                {updatingGoal ? 'Saving...' : 'Update Goal'}
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Circular Progress Ring */}
         <div className="flex flex-col items-center justify-center mb-8 flex-1">
@@ -76,12 +273,18 @@ export function FinancialSnapshot() {
 
             {/* Center content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-3xl md:text-4xl font-bold text-foreground">
-                {progressPercent.toFixed(0)}%
-              </div>
-              <div className="text-xs md:text-sm text-muted-foreground mt-2">
-                of KES 50,000 goal
-              </div>
+              {loading ? (
+                <Loader2 className="w-8 h-8 text-accent animate-spin" />
+              ) : (
+                <>
+                  <div className="text-3xl md:text-4xl font-bold text-foreground">
+                    {progressPercent.toFixed(0)}%
+                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground mt-2">
+                    of KES {monthlyGoal.toLocaleString()} goal
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -100,9 +303,18 @@ export function FinancialSnapshot() {
             <span className="text-xs md:text-sm text-muted-foreground">
               Monthly Goal
             </span>
-            <span className="font-semibold text-foreground">
-              KES {monthlyGoal.toLocaleString()}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">
+                KES {monthlyGoal.toLocaleString()}
+              </span>
+              <button
+                onClick={openGoalForm}
+                className="p-1 rounded hover:bg-accent/20 text-muted-foreground hover:text-accent transition-colors"
+                title="Edit Goal"
+              >
+                <Edit3 className="w-3 h-3" />
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs md:text-sm text-muted-foreground">
@@ -116,13 +328,13 @@ export function FinancialSnapshot() {
 
         {/* Recent transactions */}
         <div className="mt-6 space-y-2">
-          {recentTransactions.map((transaction, idx) => (
+          {recentTransactions.slice(0, 2).map((transaction) => (
             <div
-              key={idx}
+              key={transaction.id}
               className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border/30 hover:border-border hover:bg-card/80 transition-all duration-300"
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-gradient-to-br ${transaction.color} opacity-20`}>
+                <div className={`p-2 rounded-lg bg-gradient-to-br ${transaction.type === 'income' ? 'from-green-500 to-emerald-500' : 'from-red-500 to-orange-500'} opacity-20`}>
                   {transaction.type === 'income' ? (
                     <TrendingUp className="w-4 h-4 text-green-400" />
                   ) : (
@@ -140,7 +352,7 @@ export function FinancialSnapshot() {
                     : 'text-red-400'
                 }`}
               >
-                {transaction.amount}
+                {transaction.type === 'income' ? '+' : '-'}KES {transaction.amount.toLocaleString()}
               </span>
             </div>
           ))}

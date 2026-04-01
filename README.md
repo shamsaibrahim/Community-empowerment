@@ -1,35 +1,109 @@
-# community-empowerment-dashboard
+# Community Empowerment Dashboard
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+A web-based platform empowering Kenyan youth (18-35) with economic opportunities, financial literacy tools, and community support.
 
-## Built with v0
+## 🎯 Project Overview
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+This platform bridges the gap between economic opportunities, financial education, and social networking for youth and low-income households in Kenya.
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_orzJpLRQGjUWKYOik3N9kVpQF2yP)
+**Core Features:**
+- **Opportunity Board** - Job listings, mentorships, grants, and training programs
+- **Financial Snapshot** - Budgeting tools, savings tracking, expense management
+- **Community Pulse** - Forum discussions and peer mentorship
 
-## Getting Started
+## 🛠️ Tech Stack
 
-First, run the development server:
+- **Frontend:** Next.js 16, React 19, TypeScript, TailwindCSS
+- **Backend:** Next.js API Routes
+- **Database:** Supabase (PostgreSQL)
+- **UI Components:** shadcn/ui, Radix UI, Lucide Icons
 
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- pnpm (recommended) or npm
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git clone https://github.com/Alibrahm/community-empowerment-dashboard.git
+cd community-empowerment-dashboard
+```
+
+2. **Install dependencies**
+```bash
+pnpm install
+```
+
+3. **Set up environment variables**
+```bash
+cp .env.local.example .env.local
+```
+
+4. **Run the development server**
+```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🗄️ Database Setup (Supabase)
 
-## Learn More
+### Option 1: Use Mock Data (No Setup Required)
+The app works out of the box with mock data. Just run `pnpm dev`.
 
-To learn more, take a look at the following resources:
+### Option 2: Connect to Supabase
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+1. Create a free account at [supabase.com](https://supabase.com)
+2. Create a new project
+3. Go to **SQL Editor** and run the schema from `lib/supabase-schema.sql`
+4. Go to **Settings > API** and copy your credentials
+5. Update `.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-<a href="https://v0.app/chat/api/kiro/clone/Alibrahm/community-empowerment-dashboard" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+## 📁 Project Structure
+
+```
+├── app/
+│   ├── api/                 # API routes
+│   │   ├── opportunities/   # Jobs, mentorships, grants
+│   │   ├── community/       # Forum posts
+│   │   └── financial/       # Transactions, goals
+│   ├── globals.css          # Theme & styles
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Dashboard page
+├── components/
+│   ├── opportunity-board.tsx
+│   ├── financial-snapshot.tsx
+│   ├── community-pulse.tsx
+│   └── ui/                  # shadcn components
+├── hooks/
+│   └── use-api.ts           # Data fetching hooks
+├── lib/
+│   ├── supabase.ts          # Supabase client
+│   ├── supabase-schema.sql  # Database schema
+│   ├── types.ts             # TypeScript types
+│   └── data.ts              # Mock data fallback
+```
+
+## 🔌 API Endpoints
+
+| Endpoint | Methods | Description |
+|----------|---------|-------------|
+| `/api/opportunities` | GET, POST | Job/mentorship listings |
+| `/api/community` | GET, POST | Forum discussions |
+| `/api/financial` | GET, POST, PATCH | Transactions & savings goals |
+
+## 📝 License
+
+This project is part of an academic research initiative at Umma University, Kenya.
+
+## 👤 Author
+
+**Shamsa Ibrahim Abdi** (DICT/2025/53823)  
+Umma University, Kajiado, Kenya
